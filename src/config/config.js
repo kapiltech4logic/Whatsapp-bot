@@ -7,6 +7,7 @@ export const config = {
   PHONE_NUMBER_ID: process.env.PHONE_NUMBER_ID,
   WHATSAPP_TOKEN: process.env.WHATSAPP_TOKEN,
   PORT: process.env.PORT || 3000,
+  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp_bot',
 };
 
 if (!config.PHONE_NUMBER_ID || !config.WHATSAPP_TOKEN) {
