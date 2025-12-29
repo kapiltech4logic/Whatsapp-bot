@@ -8,6 +8,10 @@ export const config = {
   WHATSAPP_TOKEN: process.env.WHATSAPP_TOKEN,
   PORT: process.env.PORT || 3000,
   MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp_bot',
+  
+  // JWT Configuration
+  JWT_SECRET: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
 };
 
 if (!config.PHONE_NUMBER_ID || !config.WHATSAPP_TOKEN) {

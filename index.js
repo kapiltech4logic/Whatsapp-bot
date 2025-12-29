@@ -3,6 +3,9 @@
 import express from 'express';
 import cors from 'cors';
 import webhookRoutes from './src/routes/webhookRoutes.js';
+import authRoutes from './src/routes/authRoutes.js';
+import organizationRoutes from './src/routes/organizationRoutes.js';
+import projectRoutes from './src/routes/projectRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 import sessionRoutes from './src/routes/sessionRoutes.js';
 import analyticsRoutes from './src/routes/analyticsRoutes.js';
@@ -27,6 +30,9 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/', webhookRoutes);  // webhookRoutes already defines /webhook path
+app.use('/api/auth', authRoutes);
+app.use('/api/organizations', organizationRoutes);
+app.use('/api/projects', projectRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/analytics', analyticsRoutes);

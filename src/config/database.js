@@ -10,12 +10,11 @@ export const connectDB = async () => {
   }
 
   try {
-    const conn = await mongoose.connect(config.MONGODB_URI, {
-      dbName: 'whatsapp_bot',
-    });
+    const conn = await mongoose.connect(config.MONGODB_URI);
 
     isConnected = true;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`📊 Database: ${conn.connection.name}`);
 
     // Handle connection events
     mongoose.connection.on('error', (err) => {

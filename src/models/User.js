@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {},
+  },
 }, {
   timestamps: true,
   collection: 'users',
@@ -46,6 +50,7 @@ const userSchema = new mongoose.Schema({
 // Indexes (phoneNumber unique index is already created by schema definition)
 userSchema.index({ userType: 1 });
 userSchema.index({ lastActive: -1 });
+userSchema.index({ 'metadata.projectId': 1 });
 
 // Virtual for session count
 userSchema.virtual('sessions', {
