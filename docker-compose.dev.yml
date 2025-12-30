@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  # MongoDB Database - Must start first
+  # MongoDB Database
   mongodb:
     image: mongo:7.0
     container_name: uniserve-mongodb
@@ -24,57 +22,69 @@ services:
       retries: 5
       start_period: 30s
 
-  # WhatsApp Bot Backend
+  # WhatsApp Bot Backend (DEV - hot reload, no rebuild)
   whatsapp-bot:
-    build:
-      context: ./Whatsapp-bot
-      dockerfile: Dockerfile
+    image: node:20-alpine
     container_name: uniserve-whatsapp-bot
+    working_dir: /app
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - PORT=3000
-      - VERIFY_TOKEN=${VERIFY_TOKEN}
-      - PHONE_NUMBER_ID=${PHONE_NUMBER_ID}
-      - WHATSAPP_TOKEN=${WHATSAPP_TOKEN}
+      - VERIFY_TOKEN=${VERIFY_TOKEN:-dev_verify_token}
+      - PHONE_NUMBER_ID=${PHONE_NUMBER_ID:-dev_phone_number_id}
+      - WHATSAPP_TOKEN=${WHATSAPP_TOKEN:-dev_whatsapp_token}
       - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-adminpassword}@mongodb:27017/uniserve_mvp_db?authSource=admin
+      # Windows file watching reliability
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     depends_on:
       mongodb:
         condition: service_healthy
     networks:
       - uniserve-network
     volumes:
+      - ./Whatsapp-bot:/app
+      - whatsapp_node_modules:/app/node_modules
       - ./Whatsapp-bot/logs:/app/logs
+    command: sh -c "npm install && npm run dev"
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
       start_period: 40s
 
-  # Frontend UI
+  # Frontend UI (DEV - hot reload, no rebuild)
   uniserve-ui:
-    build:
-      context: ./Uniserve_ui
-      dockerfile: Dockerfile
+    image: node:20-alpine
     container_name: uniserve-ui
+    working_dir: /app
     restart: unless-stopped
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://whatsapp-bot:3000
+      # IMPORTANT: browser must call localhost, not service name
+      - VITE_API_URL=http://localhost:3000
+      # Windows file watching reliability
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     depends_on:
       whatsapp-bot:
         condition: service_healthy
     networks:
       - uniserve-network
+    volumes:
+      - ./Uniserve_ui:/app
+      - ui_node_modules:/app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
       start_period: 20s
 
   # Mongo Express - MongoDB Web Admin Interface
@@ -91,26 +101,10 @@ services:
       - ME_CONFIG_BASICAUTH_USERNAME=${ME_BASICAUTH_USERNAME:-admin}
       - ME_CONFIG_BASICAUTH_PASSWORD=${ME_BASICAUTH_PASSWORD:-admin123}
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - uniserve-network
-
-  # Nginx Reverse Proxy (Optional - for production)
-  # Commented out by default - uncomment if needed
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: uniserve-nginx
-  #   restart: unless-stopped
-  #   ports:
-  #     - "8080:80"
-  #     - "8443:443"
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
-  #   depends_on:
-  #     - whatsapp-bot
-  #     - uniserve-ui
-  #   networks:
-  #     - uniserve-network
 
 networks:
   uniserve-network:
@@ -118,6 +112,6 @@ networks:
 
 volumes:
   mongodb_data:
-    driver: local
   mongodb_config:
-    driver: local
+  whatsapp_node_modules:
+  ui_node_modules:
