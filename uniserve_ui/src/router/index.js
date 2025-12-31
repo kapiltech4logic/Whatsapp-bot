@@ -7,6 +7,7 @@ const DashboardView = () => import('../pages/DashboardView.vue');
 const UserJourneyView = () => import('../pages/UserJourneyView.vue');
 const OrganizationProjectsView = () => import('../pages/OrganizationProjectsView.vue');
 const ProjectAnalyticsDashboard = () => import('../pages/ProjectAnalyticsDashboard.vue');
+const DasboardT4lView =()=> import('../pages/DashboardT4l.vue')
 
 const routes = [
   {
@@ -25,6 +26,12 @@ const routes = [
     path: '/organizations/:id/projects',
     name: 'OrganizationProjects',
     component: OrganizationProjectsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/DashboardT4l',
+    name: 'DashboardT4l',
+    component: DasboardT4lView,
     meta: { requiresAuth: true },
   },
   {
